@@ -25,7 +25,7 @@ def countWordsUnstructured(filename):
 import csv
 
 def generateSimpleCSV(targetfile, dict_data):
-	with open(targetfile, 'w') as csvfile:
+	with open(targetfile, 'w', newline = '') as csvfile:
 		w = csv.writer(csvfile, delimiter = ',')
 		w.writerow(['Word', 'Count'])
 		for key, value in dict_data.items():
@@ -75,13 +75,20 @@ def countWordsMany(directory):
 # PART 4
 ################################################################################
 def generateDirectoryCSV(wordCounts, targetfile):
-	outFile = open(targetfile, 'w+', encoding= 'utf-8')
-	csvWriter = csv.DictWriter(outFile, fieldnames = ['Filename','Word', 'Count'])
-	csvWriter.writeheader()
+	with open(targetfile, 'w', encoding = 'utf-8', newline = '') as csvfile:
+		csvWriter = csv.writer(csvfile, delimiter = ',')
+		csvWriter.writerow(['Filename', 'Word', 'Count'])
+		for key, value in wordCounts.items():
+			for inkey, invalue in value.items():
+				csvWriter.writerow([key, inkey, invalue])
+	return csvfile
+	# outFile = open(targetfile, 'w+', encoding= 'utf-8')
+	# csvWriter = csv.DictWriter(outFile, fieldnames = ['Filename','Word', 'Count'])
+	# csvWriter.writeheader()
 
-	for fileName in wordCounts.keys():
-		for fileWord in wordCounts[fileName].keys():
-			csvWriter.writerow({'Filename': fileName, 'Word': fileWord, 'Count': wordCounts[fileName][fileWord]})
+	# for fileName in wordCounts.keys():
+	# 	for fileWord in wordCounts[fileName].keys():
+	# 		csvWriter.writerow({'Filename': fileName, 'Word': fileWord, 'Count': wordCounts[fileName][fileWord]})
 
 
 
@@ -131,31 +138,21 @@ def generateJSONFile(wordCounts, targetfile):
 # PART 6
 ################################################################################
 def searchCSV(csvfile, word):
+	count = 0
+	wordCount = 0
 	with open(csvfile, "r+", encoding= 'utf-8') as inFile:
-		csvReader = csv.reader(inFile, delimiter = ',')
-		fileWordCountsDict = {}
-		curFileName = ''
-		for row in csvReader:
-			if row and row[0] == curFileName:
-				fileWordCountsDict[curFileName][row[1]]=row[2]
-			elif row:
-				curFileName = row[0]
-				fileWordCountsDict[curFileName] = {}
-				fileWordCountsDict[curFileName][row[1]]=row[2]
-		
-		searchWord = {}
-		for fileName in fileWordCountsDict.keys():
-			if word in fileWordCountsDict[fileName].keys():
-				searchWord[fileName] = (fileWordCountsDict[fileName])[word]
-
-		maxCount = max(searchWord.values())	
-		for fileName in searchWord.keys():
-			if maxCount == searchWord[fileName]:
-				return fileName, maxCount
-			
+		data = csv.reader(inFile, delimiter = ',')
+		next(data, None)
+		for row in data:
+			wordCount = int(row[2])
+			if row[1] == word and wordCount > count:
+				count = wordCount
+				fileName = row[0]
+	return fileName, wordCount
 
 
-
+#https://stackoverflow.com/questions/3348460/csv-file-written-with-python-has-blank-lines-between-each-row/3348664
+# explains why Windows csv writer generates blank lines between rows
 
 def searchJSON(JSONfile, word):
 	with open(JSONfile, 'r+', encoding = 'utf-8') as inFile:
@@ -211,11 +208,11 @@ def searchJSON(JSONfile, word):
 
 # countWordsUnstructured('.\state-of-the-union-corpus-1989-2017\Bush_1989.txt')
 
-# generateSimpleCSV("wordcounts.csv", countWordsUnstructured('.\state-of-the-union-corpus-1989-2017\Bush_1989.txt'))
+#generateSimpleCSV("wordcounts.csv", countWordsUnstructured('.\state-of-the-union-corpus-1989-2017\Bush_1989.txt'))
 
 # countWordsMany('.\state-of-the-union-corpus-1989-2017')
 
-# generateDirectoryCSV(countWordsMany('.\state-of-the-union-corpus-1989-2017'), "multifile wordcounts.csv")
+#generateDirectoryCSV(countWordsMany('.\state-of-the-union-corpus-1989-2017'), "multifile wordcounts.csv")
 
 #generateJSONFile(countWordsMany('.\state-of-the-union-corpus-1989-2017'), "JSONmultifileCounts.json")
 
